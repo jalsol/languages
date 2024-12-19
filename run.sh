@@ -23,8 +23,8 @@ function check {
 }
 
 function run {
+  echo ""
   if [ -f ${2} ]; then
-    echo ""
     check "${1}" "${3}" "${4}"
     if [ ${?} -eq 0 ] && [ "${script_args}" != "check" ]; then
       echo "Benchmarking $1"
