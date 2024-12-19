@@ -1,12 +1,35 @@
 # We run the benchmark with input.txt as arguments
 # unless the script is run with arguments, then those will be used instead
-args=${*:-$(cat input.txt)}
+# With arguments the check will be skipped, unless the only argument is "check"
+# The special argument "check" makes the input always input.txt, and skips the benchmark
+
+num_script_args="${#}"
+script_args="${*}"
+if [ "${script_args}" = "check" ]; then
+  args=$(cat input.txt)
+else
+  args=${script_args:-$(cat input.txt)}
+fi
+
+function check {
+  if [ ${num_script_args} -eq 0 ] || [ "${script_args}" = "check" ]; then
+    echo "Checking $1"
+    output=$(${2} ${3})
+    if ! ./check.sh "$output"; then
+      echo "Check failed for $1."
+      return 1
+    fi
+  fi
+}
 
 function run {
   if [ -f ${2} ]; then
     echo ""
-    echo "Benchmarking $1"
-    hyperfine -i --shell=none --runs 3 --warmup 2 "${3} ${4}" | cut -c1-100
+    check "${1}" "${3}" "${4}"
+    if [ ${?} -eq 0 ] && [ "${script_args}" != "check" ]; then
+      echo "Benchmarking $1"
+      hyperfine -i --shell=none --runs 3 --warmup 2 "${3} ${4}" | cut -c1-100
+    fi
   else
     echo "No executable or script found for $1. Skipping."
   fi
