@@ -1,3 +1,4 @@
+//> using scala 3.6.2
 /**
  * Calculates the Levenshtein distance between strings using Wagner-Fischer algorithm
  * Space Complexity: O(min(m,n)) - only uses two arrays instead of full matrix
