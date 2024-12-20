@@ -62,7 +62,7 @@ object LevenshteinDistance {
   def main(args: Array[String]): Unit = {
     if (args.length < 2) {
       println("Please provide at least two strings as arguments.")
-      sys.exit(1)
+      return // Exit early
     }
 
     var minDistance = -1
