@@ -55,6 +55,8 @@ You are also welcome to add new top-level benchmarks dirs
 
 # Available Benchmarks
 
+### [hello-world](./hello-world/README.md)
+
 ### [loops](./loops/README.md)
 
 ### [fibonacci](./fibonacci/README.md)
@@ -68,3 +70,4 @@ More will likely be added in the future, as this repository improves:
 
 - https://benjdd.com/languages
 - https://benjdd.com/languages2
+- https://benjdd.com/languages3

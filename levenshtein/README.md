@@ -2,70 +2,93 @@
 
 This program computes the [levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between all of the strings provided on the command line.
 It prints out the total number of strings compared for distance, and the lowest distance score of all comparisons.
-All implementations must use the [Wagner-Fischer algorithm](https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm).
+All implementations must use the [Wagner-Fischer algorithm](https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm), with a few of the performance enhancements allowed:
+
+- Reduced space complexity from O(m*n) to O(min(m,n)) by using only two rows instead of building full matrix
+- Always use the shorter string for column dimension to minimize space usage
+- Reuse arrays instead of creating new ones
+
 This program emphasizes array/string access and basic looping and conditionals.
 
 Below is the reference C program.
-All languages must do the equivalent amount of work and meet these requirements:
+All languages should do the equivalent amount of work and meet these requirements:
 
 ```C
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-                                // ALL IMPLEMENTATIONS MUST...
-int min(int a, int b, int c) {  // Have a function for calculating min
-  int min = a;                  // If the language has a builtin or standard library min that supports 3+ inputs, that may be used as an alternative.
+
+// Can either define your own min function 
+// or use a language / standard library function
+int min(int a, int b, int c) {
+  int min = a;
   if (b < min) min = b;
   if (c < min) min = c;
   return min;
 }
 
-int levenshtein(const char *str1, const char *str2) {  // A function that takes two string inputs, returns levenshtein distance
-  int m = strlen(str1);                                // The lengths of the two strings must be ascertained somehow
-  int n = strlen(str2);
-  
-  int matrix[m+1][n+1];                                // A MxN matrix must be allocated. Either stack or heap is acceptable.
-  
-  for (int i = 0; i <= m; i++) {                       // Matrix initialization step to generate first row and column.
-    matrix[i][0] = i;
-  }
-  for (int j = 0; j <= n; j++) {
-    matrix[0][j] = j;
-  }
+int levenshtein_distance(const char *str1t, const char *str2t) {
+  // Get lengths of both strings
+  int mt = strlen(str1t);
+  int nt = strlen(str2t);
+  // Assign shorter one to str1, longer one to str2
+  const char* str1 = mt <= nt ? str1t : str2t;
+  const char* str2 = mt <= nt ? str2t : str1t;
+  // store the lengths of shorter in m, longer in n
+  int m = str1 == str1t ? mt : nt;
+  int n = str1 == str1t ? nt : mt;
  
-  for (int i = 1; i <= m; i++) {                       // Entire levenshtein matrix must be populated
-    for (int j = 1; j <= n; j++) {                     // Using standard / naive levenshtein algorithm
-      int cost = (str1[i-1] == str2[j-1]) ? 0 : 1;
-      matrix[i][j] = min(matrix[i-1][j] + 1,
-                         matrix[i][j-1] + 1,
-                         matrix[i-1][j-1] + cost);
+  // Create two rows, previous and current
+  int prev[m+1];
+  int curr[m+1];
+ 
+  // initialize the previous row
+  for (int i = 0; i <= m; i++) {
+    prev[i] = i;
+  }
+
+  // Iterate and compute distance
+  for (int i = 1; i <= n; i++) {
+    curr[0] = i;
+    for (int j = 1; j <= m; j++) {
+      int cost = (str1[j-1] == str2[i-1]) ? 0 : 1;
+      curr[j] = min(
+        prev[j] + 1,      // Deletion
+        curr[j-1] + 1,    // Insertion
+        prev[j-1] + cost  // Substitution
+      );
+    }
+    for (int j = 0; j <= m; j++) {
+      prev[j] = curr[j];
     }
   }
   
-  // The matrix must be cleaned up.
-  // For a heap allocation this means some form of cleanup
-  // For example, in C, call(s) to free()
-  // If stack was used, should just clean up when returning
-  return matrix[m][n];
+  // Return final distance, stored in prev[m]
+  return prev[m];
 }
 
-int main(int argc, char *argv[]) {                     // Program accepts any number of string inputs on the command line
+int main(int argc, char *argv[]) {
   int min_distance = -1;
   int times = 0;
-  for (int i = 0; i < argc-1; i++) {                   // Compute levenshtein distance for all combinations of input strings
-    for (int j = 0; j < argc-1; j++) {
-      if (i != j) {                                    // Not including comparing a string with itself
-        int distance = levenshtein(argv[i+1], argv[j+1]);
+  // Iterate through all combinations of command line args
+  for (int i = 1; i < argc; i++) {
+    for (int j = 1; j < argc; j++) {
+      // Don't compare the same string to itself
+      if (i != j) {
+        int distance = levenshtein_distance(argv[i], argv[j]);
         if (min_distance == -1 || min_distance > distance) {
-          min_distance = distance;                     // Keep track of the minimum distance
+          min_distance = distance;
         }
-        times++;                                       // Keep track of number of distance calls performed
+        times++;
       }
     }
   }
   
-  printf("times: %d\n", times);                        // Print out count of distance calls performed
-  printf("min_distance: %d\n", min_distance);          // Print out minimum distance
+  // The only output from the program should be the times (number of comparisons) 
+  // and min distance calculated of all comparisons. Two total lines of output, 
+  // formatted exactly like this.
+  printf("times: %d\n", times);
+  printf("min_distance: %d\n", min_distance);
   
   return 0;
 }

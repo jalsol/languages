@@ -5,47 +5,66 @@ import (
 	"os"
 )
 
-func min(a, b, c int) int  {
-	min := a
-	if b < min {
-		min = b
-	} else {
-		min = c
-	}
-
-	return min
-}
-
+// levenshtein calculates the Levenshtein distance between two strings using Wagner-Fischer algorithm
+// Space Complexity: O(min(m,n)) - only uses two rows instead of full matrix
+// Time Complexity: O(m*n) where m and n are the lengths of the input strings
 func levenshtein(s1, s2 string) int {
-	m := len(s1)
-	n := len(s2)
-
-	matrix := make([][]int, m+1)
-	for i := range matrix {
-		matrix[i] = make([]int, n+1)
+	// Early termination checks
+	if s1 == s2 {
+		return 0
+	}
+	if len(s1) == 0 {
+		return len(s2)
+	}
+	if len(s2) == 0 {
+		return len(s1)
 	}
 
+	// Make s1 the shorter string for space optimization
+	if len(s1) > len(s2) {
+		s1, s2 = s2, s1
+	}
+
+	m, n := len(s1), len(s2)
+
+	// Use two rows instead of full matrix for space optimization
+	prevRow := make([]int, m+1)
+	currRow := make([]int, m+1)
+
+	// Initialize first row
 	for i := 0; i <= m; i++ {
-		matrix[i][0] = i
-	}
-	for j := 0; j <= n; j++ {
-		matrix[0][j] = j
+		prevRow[i] = i
 	}
 
-	for i := 1; i <= m; i++ {
-		for j := 1; j <= n; j++ {
-			cost := 0
+	// Main computation loop
+	for j := 1; j <= n; j++ {
+		currRow[0] = j
+
+		for i := 1; i <= m; i++ {
+			cost := 1
 			if s1[i-1] == s2[j-1] {
-				cost = 1
+				cost = 0
 			}
-			matrix[i][j] = min(
-				matrix[i-1][j]+1,
-				matrix[i][j-1]+1,
-				matrix[i-1][j-1]+cost,
-			)
+			
+			// Find minimum of three operations
+			deletion := prevRow[i] + 1
+			insertion := currRow[i-1] + 1
+			substitution := prevRow[i-1] + cost
+			
+			currRow[i] = deletion
+			if insertion < currRow[i] {
+				currRow[i] = insertion
+			}
+			if substitution < currRow[i] {
+				currRow[i] = substitution
+			}
 		}
+
+		// Swap rows
+		prevRow, currRow = currRow, prevRow
 	}
-	return matrix[m][n]
+
+	return prevRow[m]
 }
 
 func main() {
@@ -56,15 +75,18 @@ func main() {
 
 	if len(args) < 2 {
 		fmt.Println("Please provide at least two strings as arguments.")
+		return
 	}
 
 	for i := 0; i < len(args); i++ {
-		for j := i + 1; j < len(args); j++ {
-			d := levenshtein(args[i], args[j])
-			if minD == -1 || d < minD {
-				minD = d
-			}
-			times++
+		for j := 0; j < len(args); j++ {
+			if  i != j {
+        d := levenshtein(args[i], args[j])
+        if minD == -1 || d < minD {
+          minD = d
+        }
+        times++
+      }
 		}
 	}
 

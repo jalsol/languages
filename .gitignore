@@ -1,3 +1,4 @@
+
 *.class
 code
 .idea/
@@ -6,3 +7,12 @@ code
 *.ali
 .aider*
 .env
+node_modules/
+target/
+build/
+out/
+dist/
+*.log
+*.aux
+*.bbl
+*.blg
