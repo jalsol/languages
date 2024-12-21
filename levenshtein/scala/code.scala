@@ -1,3 +1,4 @@
+//> using scala 3.6.2
 /**
  * Calculates the Levenshtein distance between strings using Wagner-Fischer algorithm
  * Space Complexity: O(min(m,n)) - only uses two arrays instead of full matrix
@@ -62,7 +63,7 @@ object LevenshteinDistance {
   def main(args: Array[String]): Unit = {
     if (args.length < 2) {
       println("Please provide at least two strings as arguments.")
-      sys.exit(1)
+      return // Exit early
     }
 
     var minDistance = -1
